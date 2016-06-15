@@ -53,6 +53,7 @@ int main(int argc, const char *argv[])
     sArea = Rect(840,300,50,50);
     ////
 
+
     static bool ran = false;
 
     while(true) {
