@@ -10,29 +10,27 @@ using namespace std;
 
 RNG *rng;
 
-Particles init_particles(Rect region, int partn) {
+Particles init_particles(int width, int height, int partn, int pWidth, int pHeight) {
     //class used to generate random numbers
     rng = new RNG();
 
     //particle* pArr = (particle*)malloc(sizeof(particle)*partn);
     Particles particles;
 
-    int regX;
-    int regY;
-
-    //center of region
-    regX = region.x + region.width/2;
-    regY = region.y + region.height/2;
     //init the particles
     while(partn--){
+
+        int regX = rng->uniform(pWidth/2,  width-pWidth/2);
+        int regY = rng->uniform(pHeight/2, height-pHeight/2);
+
         particle *p = new particle;
 
         p->x = regX;
         p->y = regY;
         p->w  = 0;
         p->scale  = 1.0;
-        p->height = region.height;
-        p->width  = region.width;
+        p->height = pHeight;
+        p->width  = pWidth;
         p->colorValue = 0.0;
 
         particles.push_back(p);

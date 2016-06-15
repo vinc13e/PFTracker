@@ -67,7 +67,7 @@ int main(int argc, const char *argv[])
 
         //runonce
         if(!ran) {
-            particles = init_particles(sArea, npart);
+            particles = init_particles(hsvImg.cols, hsvImg.rows, npart, 20, 20);
             ran = true;
         }
 

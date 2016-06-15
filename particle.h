@@ -22,7 +22,7 @@ typedef struct part {
 
 #define Particles std::vector<particle*>
 
-Particles init_particles(Rect region, int partn);
+Particles init_particles(int width, int height, int partn, int pWidth, int pHeight);
 void updateParticles(Particles particles, Mat &hsvImg, float sd, float sds);
 Particles resampleParticles(Particles particles);
 particle *copyParticle(particle *p);
