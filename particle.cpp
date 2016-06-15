@@ -10,7 +10,7 @@ using namespace std;
 
 RNG *rng;
 
-Particles init_particles(int width, int height, int partn, int pWidth, int pHeight) {
+Particles initParticles(int width, int height, int partn, int pWidth, int pHeight) {
     //class used to generate random numbers
     rng = new RNG();
 
@@ -40,6 +40,21 @@ Particles init_particles(int width, int height, int partn, int pWidth, int pHeig
     return particles;
 }
 
+void restartParticles(Particles particles, int width, int height, int pWidth, int pHeight){
+    for(auto p : particles){
+        int regX = rng->uniform(pWidth/2,  width-pWidth/2);
+        int regY = rng->uniform(pHeight/2, height-pHeight/2);
+        p->x = regX;
+        p->y = regY;
+        p->w  = 0;
+        p->scale  = 1.0;
+        p->height = pHeight;
+        p->width  = pWidth;
+        p->colorValue = 0.0;
+    }
+}
+
+
 void updateParticles(Particles particles, Mat &hsvImg, float sd, float sds) {
     int nx;
     int ny;
@@ -68,6 +83,7 @@ void updateParticles(Particles particles, Mat &hsvImg, float sd, float sds) {
         ns = ( (ny + (ns*h)/2) < (imgHeight-1) && (ny - (ns*h)/2) > 0 )?ns:0;
         //if we are outside of the image dont update this particle
         if(ns==0) {
+            p->w = 0;
             totalW += p->w;
             continue;
         }

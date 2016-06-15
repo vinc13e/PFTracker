@@ -13,7 +13,9 @@ using namespace std;
 cv::String commands =
         "{help h usage   ? |              | Print this message         }"
         "{@inputData     i |              | Where to find input video  }"
-        "{nparticles    np | 200          | Number of particles to use }"
+        "{nparticles    np | 300          | Number of particles to use }"
+        "{particlew      w | 20           | Initial particle width     }"
+        "{particleh      h | 20           | Initial particle heigth    }"
         "{showParticles sp | true         | True to show the particles }"
         "{sdrandom      sd | 15           | StdDev used on gaussian randon generator for new particle position }"
         "{sdscale      sds | 0.2          | StdDev used on gaussian randon generator for new particle scale    }";
@@ -34,8 +36,19 @@ int main(int argc, const char *argv[])
     bool showParticles = parser.get<bool>("showParticles");
     float sd           = parser.get<double>("sdrandom");
     float sds          = parser.get<double>("sdscale");
+    int wid            = parser.get<int>("particlew");
+    int hei            = parser.get<int>("particleh");
 
-    VideoCapture cam = *new VideoCapture(inFile);
+    VideoCapture cam;
+
+    auto webCam  = false;
+    auto webCamI = 0;
+    if(!strncmp(inFile.c_str(), "/dev/video", strlen("/dev/video"))){
+        webCam=true;
+        webCamI = std::atoi(inFile.c_str()+strlen(inFile.c_str())-1);
+    }
+
+    webCam ? cam.open(webCamI) : cam.open(inFile);
     if( !cam.isOpened() ) {
         cout << "Failed to open file " << inFile << endl;
         return 0;
@@ -43,16 +56,10 @@ int main(int argc, const char *argv[])
 
     Mat img;
     Mat hsvImg;
-    cv::Rect sArea;
 
     Particles particles;
-    particle *best; // TODO pointer ?
-
-
-    ////
-    sArea = Rect(840,300,50,50);
-    ////
-
+    particle *best;
+    bool showBest = true;
 
     static bool ran = false;
 
@@ -67,7 +74,7 @@ int main(int argc, const char *argv[])
 
         //runonce
         if(!ran) {
-            particles = init_particles(hsvImg.cols, hsvImg.rows, npart, 20, 20);
+            particles = initParticles(hsvImg.cols, hsvImg.rows, npart, wid, hei);
             ran = true;
         }
 
@@ -84,13 +91,19 @@ int main(int argc, const char *argv[])
 
 
         best = particles.front();
-        cout << "best ...... " << best->w << endl;
-
-        rectangle(img,
-                  Point(best->x-best->width/2*best->scale,best->y-best->height/2*best->scale),
-                  Point(best->x + best->width/2*best->scale,best->y + best->height/2*best->scale),
-                  Scalar(0,0,255),5);
-
+        cout << "best ...... " << best->w/(best->width*best->height) << endl;
+        showParticles = showBest = true;
+        if( (best->w/(best->width*best->height))  < 0.5){
+            restartParticles(particles, hsvImg.cols, hsvImg.rows, wid, hei);
+            showParticles = false;
+            showBest = false;
+        }
+        if(showBest){
+            rectangle(img,
+                      Point(best->x-best->width/2*best->scale,best->y-best->height/2*best->scale),
+                      Point(best->x + best->width/2*best->scale,best->y + best->height/2*best->scale),
+                      Scalar(0,0,255),5);
+        }
         //show all particles // 2 first are the best (red)
         for(int p=2; p < npart && showParticles; p++) {
             auto part = particles.at(p);
@@ -100,7 +113,7 @@ int main(int argc, const char *argv[])
                       Scalar(255,0,0) );
         }
         imshow("ColorTracker",img);
-        char key = cv::waitKey(100000);
+        char key = cv::waitKey(100);
         if(key == 'q' || key == 27){
             //TODO
             return 0;
