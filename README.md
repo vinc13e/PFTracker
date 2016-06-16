@@ -3,8 +3,12 @@ Basic particle filter tracker
 
 V0.1
 
-To build:
-cd PFTracker
-qmake
-make
+## build:
+1 - cd PFTracker
+
+2 - qmake
+
+3 - make
+
+## run 
 ./PFTracker
