@@ -1,3 +1,6 @@
+//TODO
+// tracking based on object matching based on correlation and HOG
+
 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
@@ -25,7 +28,7 @@ int main(int argc, const char *argv[])
 {
     cv::CommandLineParser parser(argc,argv,commands);
 
-    if (parser.has("help"))
+    if (parser.has("help") || argc < 2)
     {
         parser.printMessage();
         return 0;
@@ -43,7 +46,7 @@ int main(int argc, const char *argv[])
 
     auto webCam  = false;
     auto webCamI = 0;
-    if(!strncmp(inFile.c_str(), "/dev/video", strlen("/dev/video"))){
+    if(!strncmp(inFile.c_str(), "/dev/video", strlen("/dev/video"))){ // works for video0 to video9, video10+ fails!
         webCam=true;
         webCamI = std::atoi(inFile.c_str()+strlen(inFile.c_str())-1);
     }
@@ -63,10 +66,13 @@ int main(int argc, const char *argv[])
 
     static bool ran = false;
 
+    auto freeAll = [particles] () {
+        for(auto p : particles) delete p;
+    };
+
     while(true) {
         cam >> img;
         if(!img.data){
-            //TODO
             return 0;
         }
         cvtColor(img,hsvImg,CV_BGR2HSV);
@@ -78,22 +84,15 @@ int main(int argc, const char *argv[])
             ran = true;
         }
 
-
         //update using gaussian random number generator
         updateParticles(particles, hsvImg, sd, sds);
 
-
-        //make copies of best particles and erase worsts
+        //make copies of (50%) best particles and erase worsts
         particles = resampleParticles(particles);
 
-        for(auto p : particles)
-            cout << "p->w: " << p->w << endl;
-
-
         best = particles.front();
-        cout << "best ...... " << best->w/(best->width*best->height) << endl;
         showParticles = showBest = true;
-        if( (best->w/(best->width*best->height))  < 0.5){
+        if( (best->w/(best->width*best->height))  < 0.5){ //TODO threshold based on particle size
             restartParticles(particles, hsvImg.cols, hsvImg.rows, wid, hei);
             showParticles = false;
             showBest = false;
@@ -104,8 +103,8 @@ int main(int argc, const char *argv[])
                       Point(best->x + best->width/2*best->scale,best->y + best->height/2*best->scale),
                       Scalar(0,0,255),5);
         }
-        //show all particles // 2 first are the best (red)
-        for(int p=2; p < npart && showParticles; p++) {
+        //show (50 % best) particles  // 2 first are the best ones(red)
+        for(int p=2; p < npart/2 && showParticles; p+=2) {
             auto part = particles.at(p);
             rectangle(img,
                       Point(part->x-part->width/2*part->scale,part->y-part->height/2*part->scale),
@@ -115,10 +114,10 @@ int main(int argc, const char *argv[])
         imshow("ColorTracker",img);
         char key = cv::waitKey(100);
         if(key == 'q' || key == 27){
-            //TODO
+            freeAll();
             return 0;
         }
     }
-    //TODO
+    freeAll();
     return 0;
 }

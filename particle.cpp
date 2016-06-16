@@ -11,13 +11,11 @@ using namespace std;
 RNG *rng;
 
 Particles initParticles(int width, int height, int partn, int pWidth, int pHeight) {
-    //class used to generate random numbers
+
     rng = new RNG();
 
-    //particle* pArr = (particle*)malloc(sizeof(particle)*partn);
     Particles particles;
 
-    //init the particles
     while(partn--){
 
         int regX = rng->uniform(pWidth/2,  width-pWidth/2);
@@ -34,7 +32,6 @@ Particles initParticles(int width, int height, int partn, int pWidth, int pHeigh
         p->colorValue = 0.0;
 
         particles.push_back(p);
-
 
     }
     return particles;
@@ -68,20 +65,20 @@ void updateParticles(Particles particles, Mat &hsvImg, float sd, float sds) {
         int w = p->width;
         int h = p->height;
 
-        //the new position of the particle is the current pos plus some gaussian generated number
+        //New position of the particle:  current position plus some gaussian generated number.
         nx = rng->gaussian(sd) + p->x;
         ny = rng->gaussian(sd) + p->y;
 
         nx = max(1,min(nx,imgWidth-1));
         ny = max(1,min(ny,imgHeight-1));
-        //the new scale is the current scale plus some gaussian generated number
+        //New scale: current scale plus some gaussian generated number.
         ns = rng->gaussian(sds) + p->scale;
         ns = abs(ns);
         ns = min(max(double(ns),0.5),(double)2);
-        //check if we are inside the image
+        //check if we are inside the image.
         ns = ( (nx + (ns*w)/2) < (imgWidth-1) && (nx - (ns*w)/2) > 0 )?ns:0;
         ns = ( (ny + (ns*h)/2) < (imgHeight-1) && (ny - (ns*h)/2) > 0 )?ns:0;
-        //if we are outside of the image dont update this particle
+        //if not ...
         if(ns==0) {
             p->w = 0;
             totalW += p->w;
@@ -98,16 +95,9 @@ void updateParticles(Particles particles, Mat &hsvImg, float sd, float sds) {
 
         //give weight based on color similarity with target
         p->w = newColorValue;
-
         totalW   += p->w;
-        cout << totalW << " " << p->w << endl;
 
     }
-
-    //normalize weights
-//    for(auto p : particles) {
-//        p->w /=totalW;
-//    }
 }
 
 particle *copyParticle(particle *p){
