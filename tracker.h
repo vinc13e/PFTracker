@@ -8,3 +8,4 @@
 int getColorValue(cv::Mat sArea);
 
 #endif // TRACKER_H
+

@@ -11,8 +11,12 @@ PKGCONFIG += opencv
 SOURCES += \
     main.cpp \
     particle.cpp \
-    tracker.cpp
+    tracker.cpp \
+    particle_filter.cpp \
+    haar.cpp
 
 HEADERS += \
     particle.h \
-    tracker.h
+    tracker.h \
+    particle_filter.h \
+    haar.h
